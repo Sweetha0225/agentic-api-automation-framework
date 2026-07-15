@@ -1,0 +1,23 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Playwright
+playwright-report/
+test-results/
+
+# Logs
+reports/logs/
+*.log
+
+# Environment
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
