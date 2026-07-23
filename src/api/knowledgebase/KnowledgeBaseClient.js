@@ -1,60 +1,27 @@
-const BaseApiClient = require('../clients/BaseApiClient');
-const Endpoints = require('./KnowledgeBaseEndpoints');
+const fs = require('fs');
+const BaseApiClient = require('../../clients/BaseApiClient');
+const KnowledgeBaseEndpoints = require('./KnowledgeBaseEndpoints');
 
 class KnowledgeBaseClient {
-    constructor() {
-        this.client = new BaseApiClient();
-    }
+  constructor(authManager) {
+    this.client = new BaseApiClient(authManager);
+  }
 
-    async initialize() {
-        await this.client.initialize();
-    }
+  async create(payload, filePath) {
+    const multipartPayload = {
+      ...payload,
+      files: fs.createReadStream(filePath),
+    };
 
-    async dispose() {
-        await this.client.dispose();
-    }
-
-    async create(payload) {
-        // Special handling for multipart/form-data
-        return await this.client.apiContext.post(Endpoints.CREATE, {
-            multipart: {
-                files: {
-                    name: payload.fileName,
-                    mimeType: 'text/plain',
-                    buffer: payload.fileBuffer
-                },
-                knowledgeBase: payload.knowledgeBase,
-                description: payload.description,
-                'model-ref': payload['model-ref'],
-                type: payload.type,
-                splitSize: payload.splitSize,
-                practiceArea: payload.practiceArea,
-                teamId: payload.teamId,
-                status: payload.status,
-                goodAt: payload.goodAt,
-                hierarchyEntityId: payload.hierarchyEntityId,
-                hierarchyLevel: payload.hierarchyLevel
-            }
-        });
-    }
-
-    async getAll() {
-        return await this.client.get(Endpoints.GET_ALL);
-    }
-
-    async review(id) {
-        const endpoint = `${Endpoints.REVIEW}?collection_id=${id}`;
-        return await this.client.put(endpoint, {});
-    }
-
-    async approve(payload) {
-        return await this.client.put(Endpoints.APPROVE, payload);
-    }
-
-    async delete(id) {
-        const endpoint = Endpoints.DELETE.replace('{id}', id);
-        return await this.client.delete(endpoint);
-    }
+    // This implementation assumes the base client's post method can handle a 'multipart' 
+    // option, which is a common pattern in Playwright for multipart/form-data requests.
+    return this.client.post(
+      KnowledgeBaseEndpoints.CREATE_KNOWLEDGEBASE,
+      {
+        multipart: multipartPayload,
+      }
+    );
+  }
 }
 
-module.exports = new KnowledgeBaseClient();
+module.exports = KnowledgeBaseClient;
