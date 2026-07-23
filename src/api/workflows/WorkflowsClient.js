@@ -1,22 +1,31 @@
 const BaseApiClient = require('../clients/BaseApiClient');
-const WORKFLOWS_ENDPOINTS = require('./WorkflowsEndpoints');
+const Endpoints = require('./WorkflowsEndpoints');
 
-class WorkflowsClient extends BaseApiClient {
-  constructor(request) {
-    super(request);
-  }
+class WorkflowsClient {
+    constructor() {
+        this.client = new BaseApiClient();
+    }
 
-  async createWorkflow(payload, options = {}) {
-    return this.post(WORKFLOWS_ENDPOINTS.BASE_URL, payload, options);
-  }
+    async initialize() {
+        await this.client.initialize();
+    }
 
-  async updateWorkflow(payload, options = {}) {
-    return this.put(WORKFLOWS_ENDPOINTS.BASE_URL, payload, options);
-  }
+    async dispose() {
+        await this.client.dispose();
+    }
 
-  async deleteWorkflow(id, options = {}) {
-    return this.delete(WORKFLOWS_ENDPOINTS.GET_WORKFLOW_BY_ID(id), options);
-  }
+    async create(payload) {
+        return await this.client.post(Endpoints.CREATE, payload);
+    }
+
+    async update(payload) {
+        return await this.client.put(Endpoints.UPDATE, payload);
+    }
+
+    async delete(id) {
+        const endpoint = Endpoints.DELETE.replace('{id}', id);
+        return await this.client.delete(endpoint);
+    }
 }
 
-module.exports = WorkflowsClient;
+module.exports = new WorkflowsClient();

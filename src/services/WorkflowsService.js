@@ -1,40 +1,37 @@
-const BaseService = require('../BaseService');
-const WorkflowsClient = require('../../api/workflows/WorkflowsClient');
-const WorkflowsValidator = require('../../validators/WorkflowsValidator');
-const WorkflowsPayloads = require('../../payloads/WorkflowsPayloads');
+const BaseService = require('./BaseService');
+const client = require('../api/workflows/WorkflowsClient');
+const validator = require('../api/workflows/WorkflowsValidator');
+const payloads = require('../api/workflows/WorkflowsPayloads');
+const WorkflowsData = require('../api/workflows/WorkflowsData');
 
 class WorkflowsService extends BaseService {
-  constructor(request) {
-    super(request);
-    this.client = new WorkflowsClient(request);
-  }
+    constructor() {
+        super(client);
+    }
 
-  async createWorkflow(payload) {
-    const response = await this.client.createWorkflow(payload);
-    WorkflowsValidator.validateCreateWorkflowResponse(response);
-    return response.json();
-  }
+    async create(overrides = {}) {
+        const payload = payloads.createPayload(overrides);
+        const response = await this.client.create(payload);
+        const body = await validator.validateCreate(response);
+        // Return the full context for chaining: response body and the payload sent
+        return { ...body, payload };
+    }
 
-  async updateWorkflow(payload) {
-    const response = await this.client.updateWorkflow(payload);
-    const responseBody = await response.json();
-    WorkflowsValidator.validateUpdateWorkflowResponse(response, responseBody.data.id);
-    return responseBody;
-  }
+    async update(id, overrides = {}) {
+        // Per spec, generate an updated unique name for the update payload
+        const payload = payloads.updatePayload(id, {
+            name: WorkflowsData.generateName(),
+            ...overrides
+        });
+        const response = await this.client.update(payload);
+        const body = await validator.validateUpdate(response);
+        return { ...body, payload };
+    }
 
-  async deleteWorkflow(id, name) {
-    const response = await this.client.deleteWorkflow(id);
-    WorkflowsValidator.validateDeleteWorkflowResponse(response, name);
-    return response.json();
-  }
-
-  getCreatePayload(overrides) {
-    return WorkflowsPayloads.createWorkflowPayload(overrides);
-  }
-
-  getUpdatePayload(id, name, overrides) {
-    return WorkflowsPayloads.updateWorkflowPayload(id, name, overrides);
-  }
+    async delete(id, name) {
+        const response = await this.client.delete(id);
+        return await validator.validateDelete(response, name);
+    }
 }
 
-module.exports = WorkflowsService;
+module.exports = new WorkflowsService();

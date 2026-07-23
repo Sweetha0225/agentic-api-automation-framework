@@ -1,14 +1,11 @@
 // Implements: Workflows - create
-const workflowsTest = require('../../fixtures/workflows.fixture');
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../../fixtures/workflows.fixture');
 
-test.describe('Workflows API', () => {
-  test('Validate Create Workflow API', async ({ workflowsService }) => {
-    const payload = workflowsService.getCreatePayload();
-    const response = await workflowsService.createWorkflow(payload);
-
-    expect(response.data).toBeDefined();
-    expect(response.data.id).toBeDefined();
-    expect(response.data.message).toBe('Workflow created successfully');
-  });
+test.describe('Workflows - Create API', () => {
+    test('Validate Create Workflow API', async ({ workflowsService, workflowsEntityManager }) => {
+        const response = await workflowsEntityManager.createWorkflow();
+        expect(response.data).toBeDefined();
+        expect(response.data.id).toBeGreaterThan(0);
+        expect(response.data.message).toBe('Workflow created successfully');
+    });
 });

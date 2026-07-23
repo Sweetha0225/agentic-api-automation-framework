@@ -1,25 +1,24 @@
 // Implements: Workflows - delete
-const workflowsTest = require('../../fixtures/workflows.fixture');
-const { test, expect } = require('@playwright/test');
-const WorkflowsData = require('../../../src/data/workflows/WorkflowsData');
+const { test, expect } = require('../../fixtures/workflows.fixture');
 
-test.describe('Workflows API', () => {
-  test('Validate Delete Workflow API', async ({ workflowsService, workflowsEntityManager }) => {
-    // Precondition 1: Create a workflow
-    const createPayload = workflowsService.getCreatePayload();
-    const createdWorkflow = await workflowsEntityManager.createWorkflow(createPayload);
+test.describe('Workflows - Delete API', () => {
+    test('Validate Delete Workflow API', async ({ workflowsService, workflowsEntityManager }) => {
+        // 1. Create a workflow.
+        const createResponse = await workflowsEntityManager.createWorkflow();
+        const originalId = createResponse.data.id;
 
-    // Precondition 2: Update the workflow to get the new ID for deletion, as per spec
-    const newName = WorkflowsData.generateWorkflowName();
-    const updatePayload = workflowsService.getUpdatePayload(createdWorkflow.id, newName);
-    const updatedWorkflowResponse = await workflowsService.updateWorkflow(updatePayload);
-    const idForDeletion = updatedWorkflowResponse.data.id;
+        // 2. Update the workflow to get the new ID and name, as per spec notes.
+        const updateResponse = await workflowsService.update(originalId);
+        const idForDeletion = updateResponse.data.id;
+        const updatedName = updateResponse.payload.name;
 
-    // Action: Delete the workflow
-    const response = await workflowsService.deleteWorkflow(idForDeletion, newName);
+        // 3. Delete the workflow using the ID and name from the UPDATE response.
+        const deleteResponse = await workflowsService.delete(idForDeletion, updatedName);
+        expect(deleteResponse.status).toBe('SUCCESS');
 
-    // Validation
-    expect(response.data).toBeDefined();
-    expect(response.data.message).toBe(`WorkFlow ${newName} deleted successfully`);
-  });
+        // 4. Mark entities in the manager as deleted to prevent cleanup attempts.
+        const originalWorkflow = workflowsEntityManager.createdWorkflows.find(w => w.id === originalId);
+        if(originalWorkflow) originalWorkflow.isDeleted = true;
+        workflowsEntityManager.registerForCleanup({ id: idForDeletion, name: updatedName, isDeleted: true });
+    });
 });

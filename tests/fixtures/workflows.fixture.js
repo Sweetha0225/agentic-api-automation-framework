@@ -1,16 +1,18 @@
 const base = require('@playwright/test');
-const WorkflowsService = require('../../src/services/WorkflowsService');
-const WorkflowsEntityManager = require('../../src/managers/WorkflowsEntityManager');
+const workflowsService = require('../../src/services/WorkflowsService');
+const workflowsEntityManager = require('../../src/managers/WorkflowsEntityManager');
 
-const workflowsTest = base.test.extend({
-  workflowsService: async ({ request }, use) => {
-    await use(new WorkflowsService(request));
-  },
-  workflowsEntityManager: async ({ request }, use) => {
-    const entityManager = new WorkflowsEntityManager(request);
-    await use(entityManager);
-    await entityManager.cleanup();
-  }
+exports.test = base.test.extend({
+    workflowsService: async ({}, use) => {
+        await workflowsService.initialize();
+        await use(workflowsService);
+        await workflowsService.dispose();
+    },
+    workflowsEntityManager: async ({}, use) => {
+        await use(workflowsEntityManager);
+        // Cleanup runs after the test that uses this fixture is complete.
+        await workflowsEntityManager.cleanup();
+    }
 });
 
-module.exports = workflowsTest;
+exports.expect = base.expect;
