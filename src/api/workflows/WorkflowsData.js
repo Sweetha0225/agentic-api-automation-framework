@@ -5,7 +5,7 @@ class WorkflowsData {
      * Returns a unique workflow name.
      */
     generateName() {
-        return baseDataFactory.generateName('Workflow');
+        return baseDataFactory.generateName('WorkFlow');
     }
 }
 

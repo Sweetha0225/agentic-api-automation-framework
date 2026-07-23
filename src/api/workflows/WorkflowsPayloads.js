@@ -35,7 +35,7 @@ class WorkflowsPayloads {
 
     static updatePayload(id, overrides = {}) {
         const createPayload = this.createPayload(overrides);
-        // Per spec, update payload is the same as create but with a leading 'id' field
+        // Per spec, update payload is the same as create but with a leading 'id' field and a new unique name
         return {
             id,
             ...createPayload,
